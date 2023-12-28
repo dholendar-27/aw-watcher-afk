@@ -112,7 +112,7 @@ class AFKWatcher:
                 else:
                     if afk:
                         self.ping(
-                            afk, timestamp=last_input, duration=seconds_since_input
+                            afk, timestamp=now
                         )
                     else:
                         self.ping(afk, timestamp=last_input)
