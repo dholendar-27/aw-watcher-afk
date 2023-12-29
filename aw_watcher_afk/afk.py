@@ -75,47 +75,47 @@ class AFKWatcher:
         afk = False
         while True:
             try:
-                # buckets = self.client.get_buckets()
-                # if(buckets.get(self.bucketname) is None):
-                #     eventtype = "afkstatus"
-                #     self.client.create_bucket_if_not_exist(self.bucketname, eventtype)
-                # else:
-                if system in ["Darwin", "Linux"] and os.getppid() == 1:
-                    # TODO: This won't work with PyInstaller which starts a bootloader process which will become the parent.
-                    #       There is a solution however.
-                    #       See: https://github.com/ActivityWatch/aw-qt/issues/19#issuecomment-316741125
-                    logger.info("afkwatcher stopped because parent process died")
-                    break
-
-                now = datetime.now(timezone.utc)
-                seconds_since_input = seconds_since_last_input()
-                last_input = now - timedelta(seconds=seconds_since_input)
-                logger.debug(f"Seconds since last input: {seconds_since_input}")
-
-                # If no longer AFK
-                if afk and seconds_since_input < self.settings.timeout:
-                    logger.info("No longer AFK")
-                    self.ping(afk, timestamp=last_input)
-                    afk = False
-                    # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
-                    self.ping(afk, timestamp=last_input + td1ms)
-                # If becomes AFK
-                elif not afk and seconds_since_input >= self.settings.timeout:
-                    logger.info("Became AFK")
-                    self.ping(afk, timestamp=last_input)
-                    afk = True
-                    # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
-                    self.ping(
-                        afk, timestamp=last_input + td1ms, duration=seconds_since_input
-                    )
-                # Send a heartbeat if no state change was made
+                buckets = self.client.get_buckets()
+                if(buckets.get(self.bucketname) is None):
+                    eventtype = "afkstatus"
+                    self.client.create_bucket_if_not_exist(self.bucketname, eventtype)
                 else:
-                    if afk:
-                        self.ping(
-                            afk, timestamp=now
-                        )
-                    else:
+                    if system in ["Darwin", "Linux"] and os.getppid() == 1:
+                        # TODO: This won't work with PyInstaller which starts a bootloader process which will become the parent.
+                        #       There is a solution however.
+                        #       See: https://github.com/ActivityWatch/aw-qt/issues/19#issuecomment-316741125
+                        logger.info("afkwatcher stopped because parent process died")
+                        break
+
+                    now = datetime.now(timezone.utc)
+                    seconds_since_input = seconds_since_last_input()
+                    last_input = now - timedelta(seconds=seconds_since_input)
+                    logger.debug(f"Seconds since last input: {seconds_since_input}")
+
+                    # If no longer AFK
+                    if afk and seconds_since_input < self.settings.timeout:
+                        logger.info("No longer AFK")
                         self.ping(afk, timestamp=last_input)
+                        afk = False
+                        # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
+                        self.ping(afk, timestamp=last_input + td1ms)
+                    # If becomes AFK
+                    elif not afk and seconds_since_input >= self.settings.timeout:
+                        logger.info("Became AFK")
+                        self.ping(afk, timestamp=last_input)
+                        afk = True
+                        # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
+                        self.ping(
+                            afk, timestamp=last_input + td1ms, duration=seconds_since_input
+                        )
+                    # Send a heartbeat if no state change was made
+                    else:
+                        if afk:
+                            self.ping(
+                                afk, timestamp=last_input, duration=seconds_since_input
+                            )
+                        else:
+                            self.ping(afk, timestamp=last_input)
 
                 sleep(self.settings.poll_time)
 
