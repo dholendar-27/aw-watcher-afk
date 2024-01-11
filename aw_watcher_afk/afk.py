@@ -48,8 +48,8 @@ class AFKWatcher:
         self.client = ActivityWatchClient(
             "aw-watcher-afk", host=args.host, port=args.port, testing=testing
         )
-        self.bucketname = "{}_{}".format(
-            self.client.client_name, self.client.client_hostname
+        self.bucketname = "{}".format(
+            self.client.client_name
         )
 
     def ping(self, afk: bool, timestamp: datetime, duration: float = 0):
