@@ -15,11 +15,24 @@ poll_time = 1
 
 
 def load_config(testing: bool):
+    """
+     Load configuration from TOML file. This is a wrapper around load_config_toml that allows to specify whether or not we are testing
+     
+     @param testing - True if we are testing
+     
+     @return A dictionary of config
+    """
     section = "aw-watcher-afk" + ("-testing" if testing else "")
     return load_config_toml("aw-watcher-afk", default_config)[section]
 
 
 def parse_args():
+    """
+     Parse command line arguments. This is called from main () to parse the command line arguments. If you want to override this call super (). parse_args ()
+     
+     
+     @return a tuple of ( parser args
+    """
     # get testing in a dirty way, because we need it for the config lookup
     testing = "--testing" in sys.argv
     config = load_config(testing)

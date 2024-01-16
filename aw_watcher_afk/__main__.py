@@ -5,6 +5,12 @@ from aw_watcher_afk.config import parse_args
 
 
 def main() -> None:
+    """
+     Entry point for AFK watcher. Sets up logging starts the watcher and waits for it to finish.
+     
+     
+     @return A tuple containing exit code and error message if there was an error or None otherwise. This is called from sys. exit
+    """
     args = parse_args()
 
     # Set up logging
@@ -21,5 +27,6 @@ def main() -> None:
     watcher.run()
 
 
+# main function for the main module
 if __name__ == "__main__":
     main()
