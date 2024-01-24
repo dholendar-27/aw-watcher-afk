@@ -121,6 +121,8 @@ class AFKWatcher:
                 last_input = now - timedelta(seconds=seconds_since_input)
                 logger.debug(f"Seconds since last input: {seconds_since_input}")
 
+                # print(f'afk status@{datetime.now()}: {afk} seconds_since_input: {seconds_since_input}')
+
                 # If no longer AFK
                 # Ping if the current event is AFK or Became AFK
                 if afk and seconds_since_input < self.settings.timeout:
@@ -136,7 +138,7 @@ class AFKWatcher:
                     afk = True
                     # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
                     self.ping(
-                        afk, timestamp=last_input + td1ms, duration=seconds_since_input
+                        afk, timestamp=now
                     )
                 # Send a heartbeat if no state change was made
                 else:
