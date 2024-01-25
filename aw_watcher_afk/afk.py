@@ -33,7 +33,7 @@ class Settings:
     def __init__(self, config_section, timeout=None, poll_time=None):
         """
          Initialize the class with values from config section. This is called by __init__ and should not be called directly
-         
+
          @param config_section - section from which to read configuration
          @param timeout - timeout in seconds to wait for input activity to arrive
          @param poll_time - time in seconds to wait for input activity
@@ -50,7 +50,7 @@ class AFKWatcher:
     def __init__(self, args, testing=False):
         """
          Initialize the object by reading settings from config. py and instantiating the ActivityWatchClient. This is called by __init__ and should not be called directly
-         
+
          @param args - Arguments passed to the command
          @param testing - Whether or not we are testing ( default False
         """
@@ -69,7 +69,7 @@ class AFKWatcher:
     def ping(self, afk: bool, timestamp: datetime, duration: float = 0):
         """
          Send a heartbeat to the bucket. This is used to determine if we are up or down. If afk is True the event will be marked as " AFK " otherwise it's " NOT - AFK ".
-         
+
          @param afk - True if the event is an AFE
          @param timestamp - Unix timestamp of the event
          @param duration - Time in seconds to wait before sending the event
@@ -138,7 +138,7 @@ class AFKWatcher:
                     afk = True
                     # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
                     self.ping(
-                        afk, timestamp=now
+                        afk, timestamp=last_input + td1ms, duration=seconds_since_input
                     )
                 # Send a heartbeat if no state change was made
                 else:
