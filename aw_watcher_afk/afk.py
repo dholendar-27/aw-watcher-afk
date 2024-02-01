@@ -138,7 +138,7 @@ class AFKWatcher:
                     afk = True
                     # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
                     self.ping(
-                        afk, timestamp=last_input + td1ms, duration=seconds_since_input
+                        afk, timestamp=now
                     )
                 # Send a heartbeat if no state change was made
                 else:

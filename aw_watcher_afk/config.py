@@ -5,7 +5,7 @@ from aw_core.config import load_config_toml
 
 default_config = """
 [aw-watcher-afk]
-timeout = 180
+timeout = 300
 poll_time = 5
 
 [aw-watcher-afk-testing]
