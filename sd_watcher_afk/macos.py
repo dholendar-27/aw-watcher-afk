@@ -1,22 +1,29 @@
-from Quartz.CoreGraphics import (CGEventSourceSecondsSinceLastEventType,
-                                 kCGEventSourceStateHIDSystemState,
-                                 kCGAnyInputEventType)
-
+from Quartz.CoreGraphics import (
+    CGEventSourceSecondsSinceLastEventType,
+    kCGEventSourceStateHIDSystemState,
+    kCGAnyInputEventType
+)
 
 def seconds_since_last_input() -> float:
     """
-     Return the number of seconds since the last input event. This is used to determine when to stop the event loop and not to detect a situation where an application is shutting down.
-     
-     
-     @return The number of seconds since the last input event ( 0. 0 - 1. 0 ) in nan
+    Return the number of seconds since the last input event.
+    This is useful for determining user inactivity time.
+
+    @return: The number of seconds since the last input event in seconds.
     """
-    return CGEventSourceSecondsSinceLastEventType(kCGEventSourceStateHIDSystemState, kCGAnyInputEventType)
+    try:
+        # Fetch the time since the last input event (keyboard, mouse, etc.)
+        return CGEventSourceSecondsSinceLastEventType(kCGEventSourceStateHIDSystemState, kCGAnyInputEventType)
+    except Exception as e:
+        print(f"Error retrieving input event time: {e}")
+        return -1
 
-
-# Print the time since last input.
 if __name__ == "__main__":
     from time import sleep
-    # Sleeps for a time to be run
-    while True:
-        sleep(1)
-        print(seconds_since_last_input())
+    try:
+        # Sleeps for 1 second intervals, prints time since last input
+        while True:
+            sleep(1)
+            print(f"Seconds since last input: {seconds_since_last_input()}")
+    except KeyboardInterrupt:
+        print("Program terminated by user.")
