@@ -2,11 +2,25 @@ import logging
 import os
 import platform
 from datetime import datetime, timedelta, timezone
+import sys
 from time import sleep
-
+import requests
+from .util import cache
+from sd_watcher_afk.util import add_settings, retrieve_settings
+if sys.platform == "win32":
+    _module_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+    print(_module_dir)
+    os.add_dll_directory(_module_dir)
+elif sys.platform == "darwin":
+    _module_dir = os.path.dirname(os.path.realpath(__file__))
+    _parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(_module_dir, os.pardir))))
+    libsqlcipher_path = _parent_dir
+    openssl = ctypes.cdll.LoadLibrary(libsqlcipher_path + '/libcrypto.3.dylib')
+    libsqlcipher = ctypes.cdll.LoadLibrary(libsqlcipher_path + '/libsqlcipher.0.dylib')
 from sd_client import ActivityWatchClient
 from sd_core.models import Event
-
+from operator import itemgetter
+import json
 from .config import load_config
 
 system = platform.system()
@@ -27,7 +41,7 @@ else:
 
 logger = logging.getLogger(__name__)
 td1ms = timedelta(milliseconds=1)
-
+host = "http://localhost:7600/api"
 
 class Settings:
     def __init__(self, config_section, timeout=None, poll_time=None):
@@ -85,6 +99,11 @@ class AFKWatcher:
         """
         logger.info("sd-watcher-afk started")
 
+        # Code to fetch idle time app and store it in cache if available, else create it in db
+        idle_time_app_key = 'idle_time_app'
+        idle_time_app_value = ['ms-teams.exe', 'ms-teams', 'teams']
+        add_settings(idle_time_app_key, idle_time_app_value)
+
         # Initialization
         sleep(1)
 
@@ -123,6 +142,11 @@ class AFKWatcher:
 
                 # print(f'afk status@{datetime.now()}: {afk} seconds_since_input: {seconds_since_input}')
 
+                # Check if the user is in ms-teams and if they are using ms-teams, set afk=False
+
+                # if not afk and last_window['data']['app'] == 'ms-teams.exe':
+
+                    # import pdb; pdb.set_trace()
                 # If no longer AFK
                 # Ping if the current event is AFK or Became AFK
                 if afk and seconds_since_input < self.settings.timeout:
@@ -133,13 +157,19 @@ class AFKWatcher:
                     self.ping(afk, timestamp=last_input + td1ms)
                 # If becomes AFK
                 elif not afk and seconds_since_input >= self.settings.timeout:
-                    logger.info("Became AFK")
-                    self.ping(afk, timestamp=last_input)
-                    afk = True
-                    # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
-                    self.ping(
-                        afk, timestamp=now
-                    )
+                    # Will check if the  current window is Teams and if true, will keep the wather running.
+                    window_data = self.client.get_events('sd-watcher-window')
+                    last_window = sorted(window_data, key=lambda d: d['id'])[-1]
+                    if last_window['data']['app'] in cache['settings']['value']:
+                        self.ping(afk, timestamp=last_input)
+                    else:
+                        logger.info("Became AFK")
+                        self.ping(afk, timestamp=last_input)
+                        afk = True
+                        # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
+                        self.ping(
+                            afk, timestamp=now
+                        )
                 # Send a heartbeat if no state change was made
                 else:
                     # ping the current time and the last input
