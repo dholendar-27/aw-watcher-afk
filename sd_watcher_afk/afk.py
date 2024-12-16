@@ -6,6 +6,7 @@ from time import sleep
 
 from sd_client import ActivityWatchClient
 from sd_core.models import Event
+from pywinauto import Desktop
 
 from .config import load_config
 
@@ -27,6 +28,17 @@ else:
 
 logger = logging.getLogger(__name__)
 td1ms = timedelta(milliseconds=1)
+
+def is_ms_teams_meeting():
+    windows = Desktop(backend="uia").windows()
+    for bab in windows:
+        if 'Microsoft Teams' in bab.window_text() and 'Chat' not in bab.window_text():
+            # import pdb; pdb. set_trace()
+            return {'status': True, 'data':{'status': 'not-afk', 'app': 'Microsoft Teams', 'title': 'ms-teams'}}
+        elif 'Zoom Meeting' in bab.window_text():
+            data = {'status': True, 'data':{'status': 'not-afk', 'app': 'Zoom Meeting', 'title': 'zoom'}}
+            return data
+
 
 
 class Settings:
@@ -75,6 +87,9 @@ class AFKWatcher:
          @param duration - Time in seconds to wait before sending the event
         """
         data = {"status": "afk" if afk else "not-afk", "app" : "afk", "title" : "Idle time"}
+        meetings = is_ms_teams_meeting()
+        if meetings['status'] == True:
+            data = meetings['data']
         e = Event(timestamp=timestamp, duration=duration, data=data)
         pulsetime = self.settings.timeout + self.settings.poll_time
         self.client.heartbeat(self.bucketname, e, pulsetime=pulsetime, queued=True)
